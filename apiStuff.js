@@ -3,21 +3,61 @@ const api = "https://api.weather.gov";
 const coordinateRegEx = new RegExp("^(?:([^\D]*)(-?)(\d{0,3})\.(\d+))$");
 var xhr = new XMLHttpRequest();
 xhr.responseType = "json";
-xhr.setRequestHeader("User-Agent", "(Oklahoma Weather Lab, owl@ou.edu)");
 
 function requestData(url) {
   xhr.open("GET", url, false);
+  xhr.setRequestHeader("User-Agent", "(Oklahoma Weather Lab, owl@ou.edu)");
   xhr.send();
   return JSON.parse(xhr.responseText);
 }
 
 function getZonesFromCoords(latitude, longitude) {
   var newAPIUrl = api + "/zones?point=" + latitude + "," + longitude;
-  var zones = requestData(newAPIUrl).features;
-  return zones;
+  var allZones = requestData(newAPIUrl).features;
+  var obj = {
+    allZones: allZones,
+    getLandZone: () => {
+      var newAPIUrl = api + "/zones?type=land&point=" + latitude + "," + longitude;
+      var zone = requestData(newAPIUrl).features[0].properties;
+      return console.log(JSON.stringify(zone));
+    },
+    getMarineZone: () => {
+      var newAPIUrl = api + "/zones?type=marine&point=" + latitude + "," + longitude;
+      var zone = requestData(newAPIUrl).features[0].properties;
+      return console.log(JSON.stringify(zone));
+    },
+    getForecastZone: () => {
+      var newAPIUrl = api + "/zones?type=forecast&point=" + latitude + "," + longitude;
+      var zone = requestData(newAPIUrl).features[0].properties;
+      return console.log(JSON.stringify(zone));
+    },
+    getCoastalZone: () => {
+      var newAPIUrl = api + "/zones?type=coastal&point=" + latitude + "," + longitude;
+      var zone = requestData(newAPIUrl).features[0].properties;
+      return console.log(JSON.stringify(zone));
+    },
+    getOffShoreZone: () => {
+      var newAPIUrl = api + "/zones?type=offshore&point=" + latitude + "," + longitude;
+      var zone = requestData(newAPIUrl).features[0].properties;
+      return console.log(JSON.stringify(zone));
+    },
+    getFireZone: () => {
+      var newAPIUrl = api + "/zones?type=fire&point=" + latitude + "," + longitude;
+      var zone = requestData(newAPIUrl).features[0].properties;
+      return console.log(JSON.stringify(zone));
+    },
+    getCountyZone: () => {
+      var newAPIUrl = api + "/zones?type=county&point=" + latitude + "," + longitude;
+      var zone = requestData(newAPIUrl).features[0].properties;
+      return console.log(JSON.stringify(zone));
+    }
+  }
+  return obj;
 };
 
-getZonesFromCoords(35.92, -97.45);
+getZonesFromCoords(39.7392,-104.9849).getFireZone();
+getZonesFromCoords(39.7392,-104.9849).getCountyZone();
+getZonesFromCoords(39.7392,-104.9849).getForecastZone();
 
 
 
