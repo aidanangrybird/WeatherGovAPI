@@ -5,60 +5,107 @@ var xhr = new XMLHttpRequest();
 xhr.responseType = "json";
 
 function requestData(url) {
-  xhr.open("GET", url, false);
+  var apiUrl = api + url;
+  xhr.open("GET", apiUrl, false);
   xhr.setRequestHeader("User-Agent", "(Oklahoma Weather Lab, owl@ou.edu)");
   xhr.send();
   return JSON.parse(xhr.responseText);
 }
 
 function getZonesFromCoords(latitude, longitude) {
-  var newAPIUrl = api + "/zones?point=" + latitude + "," + longitude;
-  var allZones = requestData(newAPIUrl).features;
+  var allZones = requestData("/zones?point=" + latitude + "," + longitude).features;
   var obj = {
     allZones: allZones,
     getLandZone: () => {
-      var newAPIUrl = api + "/zones?type=land&point=" + latitude + "," + longitude;
-      var zone = requestData(newAPIUrl).features[0].properties;
+      var zone = requestData("/zones?type=land&point=" + latitude + "," + longitude).features[0].properties;
       return console.log(JSON.stringify(zone));
     },
     getMarineZone: () => {
-      var newAPIUrl = api + "/zones?type=marine&point=" + latitude + "," + longitude;
-      var zone = requestData(newAPIUrl).features[0].properties;
+      var zone = requestData("/zones?type=marine&point=" + latitude + "," + longitude).features[0].properties;
       return console.log(JSON.stringify(zone));
     },
     getForecastZone: () => {
       var newAPIUrl = api + "/zones?type=forecast&point=" + latitude + "," + longitude;
-      var zone = requestData(newAPIUrl).features[0].properties;
+      var zone = requestData("/zones?type=forecast&point=" + latitude + "," + longitude).features[0].properties;
       return console.log(JSON.stringify(zone));
     },
+    getForecastZoneID: () => {
+      var id = requestData("/zones?type=coastal&point=" + latitude + "," + longitude).features[0].properties.id;
+      return console.log(id);
+    },
     getCoastalZone: () => {
-      var newAPIUrl = api + "/zones?type=coastal&point=" + latitude + "," + longitude;
-      var zone = requestData(newAPIUrl).features[0].properties;
+      var zone = requestData("/zones?type=coastal&point=" + latitude + "," + longitude).features[0].properties;
       return console.log(JSON.stringify(zone));
     },
     getOffShoreZone: () => {
-      var newAPIUrl = api + "/zones?type=offshore&point=" + latitude + "," + longitude;
-      var zone = requestData(newAPIUrl).features[0].properties;
+      var zone = requestData("/zones?type=offshore&point=" + latitude + "," + longitude).features[0].properties;
       return console.log(JSON.stringify(zone));
     },
     getFireZone: () => {
-      var newAPIUrl = api + "/zones?type=fire&point=" + latitude + "," + longitude;
-      var zone = requestData(newAPIUrl).features[0].properties;
+      var zone = requestData("/zones?type=fire&point=" + latitude + "," + longitude).features[0].properties;
       return console.log(JSON.stringify(zone));
     },
     getCountyZone: () => {
-      var newAPIUrl = api + "/zones?type=county&point=" + latitude + "," + longitude;
-      var zone = requestData(newAPIUrl).features[0].properties;
+      var zone = requestData("/zones?type=county&point=" + latitude + "," + longitude).features[0].properties;
       return console.log(JSON.stringify(zone));
+    },
+    getCountyName: () => {
+      var zone = requestData("/zones?type=county&point=" + latitude + "," + longitude).features[0].properties.name;
+      return console.log(zone);
     }
   }
   return obj;
 };
 
-getZonesFromCoords(39.7392,-104.9849).getFireZone();
-getZonesFromCoords(39.7392,-104.9849).getCountyZone();
-getZonesFromCoords(39.7392,-104.9849).getForecastZone();
+/**
+ * This gets the SPC outlook text, probablities and coordinates
+ * @param days - What day outlook you want. Days 4-8 should be entered as 48
+ * @returns Stuff
+ **/
+function getSPCOutlook(day) {
+  var possibleDays = [1,2,3,48];
+  var probablityPointsId;
+  var probablityPointsIdOld
+  var probablityPoints;
+  var outlookNarrativeId;
+  var outlookNarrativeIdOld;
+  var outlookNarrative;
+  if (!possibleDays.includes(day)) {
+    console.log(day + " is not a valid value");
+  } if (day == 48) {
+    probablityPointsIdOld = JSON.stringify(requestData("/products?wmoid=WUUS48&type=PTS&limit=1"));
+    probablityPointsId = JSON.parse(probablityPointsIdOld.slice(86,-2)).id;
+    probablityPoints = requestData("/products/" + probablityPointsId).productText;
+    probablityPointsIdOld = JSON.stringify(requestData("/products?wmoid=ACUS48&type=SWO&limit=1"));
+    outlookNarrativeId = JSON.parse(probablityPointsIdOld.slice(86,-2)).id;
+    outlookNarrative = requestData("/products/" + outlookNarrativeId).productText;
+    var obj = {
+      probablityPoints: probablityPoints,
+      outlookNarrative: outlookNarrative
+    };
+    return obj;
+  } else {
+    probablityPointsIdOld = JSON.stringify(requestData("/products?wmoid=WUUS0" + day + "&type=PTS&limit=1"));
+    probablityPointsId = JSON.parse(probablityPointsIdOld.slice(86,-2)).id;
+    probablityPoints = requestData("/products/" + probablityPointsId).productText;
+    probablityPointsIdOld = JSON.stringify(requestData("/products?wmoid=ACUS0" + day + "&type=SWO&limit=1"));
+    outlookNarrativeId = JSON.parse(probablityPointsIdOld.slice(86,-2)).id;
+    outlookNarrative = requestData("/products/" + outlookNarrativeId).productText;
+    var obj = {
+      probablityPoints: probablityPoints,
+      outlookNarrative: outlookNarrative
+    };
+    return obj;
+  };
+};
 
+//getZonesFromCoords(39.7392,-104.9849).getLandZone();
+//getZonesFromCoords(39.7392,-104.9849).getForecastZone();
+//getZonesFromCoords(39.7392,-104.9849).getCountyZone();
+//getZonesFromCoords(39.7392,-104.9849).getCountyName();
+
+
+console.log(getSPCOutlook(1));
 
 
 	//For sure add option to switch between OWL and SPC convective forecasts
