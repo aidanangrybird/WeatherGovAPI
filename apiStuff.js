@@ -76,8 +76,8 @@ function getSPCOutlook(day) {
     probablityPointsIdOld = JSON.stringify(requestData("/products?wmoid=WUUS48&type=PTS&limit=1"));
     probablityPointsId = JSON.parse(probablityPointsIdOld.slice(86,-2)).id;
     probablityPoints = requestData("/products/" + probablityPointsId).productText;
-    probablityPointsIdOld = JSON.stringify(requestData("/products?wmoid=ACUS48&type=SWO&limit=1"));
-    outlookNarrativeId = JSON.parse(probablityPointsIdOld.slice(86,-2)).id;
+    probablityNarrativeIdOld = JSON.stringify(requestData("/products?wmoid=ACUS48&type=SWO&limit=1"));
+    outlookNarrativeId = JSON.parse(probablityNarrativeIdOld.slice(86,-2)).id;
     outlookNarrative = requestData("/products/" + outlookNarrativeId).productText;
     var obj = {
       probablityPoints: probablityPoints,
@@ -88,8 +88,8 @@ function getSPCOutlook(day) {
     probablityPointsIdOld = JSON.stringify(requestData("/products?wmoid=WUUS0" + day + "&type=PTS&limit=1"));
     probablityPointsId = JSON.parse(probablityPointsIdOld.slice(86,-2)).id;
     probablityPoints = requestData("/products/" + probablityPointsId).productText;
-    probablityPointsIdOld = JSON.stringify(requestData("/products?wmoid=ACUS0" + day + "&type=SWO&limit=1"));
-    outlookNarrativeId = JSON.parse(probablityPointsIdOld.slice(86,-2)).id;
+    probablityNarrativeIdOld = JSON.stringify(requestData("/products?wmoid=ACUS0" + day + "&type=SWO&limit=1"));
+    outlookNarrativeId = JSON.parse(probablityNarrativeIdOld.slice(86,-2)).id;
     outlookNarrative = requestData("/products/" + outlookNarrativeId).productText;
     var obj = {
       probablityPoints: probablityPoints,
