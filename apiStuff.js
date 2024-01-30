@@ -12,55 +12,107 @@ function requestData(url) {
   return JSON.parse(xhr.responseText);
 }
 
-function getZonesFromCoords(latitude, longitude) {
-  var allZones = requestData("/zones?point=" + latitude + "," + longitude).features;
+/**
+ * Gets zones from coordinates
+ * @param latitude - Latitude of the coordinate pair
+ * @param longitude - Longitude of the coordinate pair
+ * @returns 
+ **/
+function getCountyFromCoords(latitude, longitude) {
+  var county = requestData("/zones?type=county&point=" + latitude + "," + longitude).features[0].properties;
   var obj = {
-    allZones: allZones,
-    getLandZone: () => {
-      var zone = requestData("/zones?type=land&point=" + latitude + "," + longitude).features[0].properties;
-      return console.log(JSON.stringify(zone));
+    getAll: () => {
+      return county;
     },
-    getMarineZone: () => {
-      var zone = requestData("/zones?type=marine&point=" + latitude + "," + longitude).features[0].properties;
-      return console.log(JSON.stringify(zone));
+    getName: () => {
+      return county.name;
     },
-    getForecastZone: () => {
-      var newAPIUrl = api + "/zones?type=forecast&point=" + latitude + "," + longitude;
-      var zone = requestData("/zones?type=forecast&point=" + latitude + "," + longitude).features[0].properties;
-      return console.log(JSON.stringify(zone));
+    getID: () => {
+      return county.id;
     },
-    getForecastZoneID: () => {
-      var id = requestData("/zones?type=coastal&point=" + latitude + "," + longitude).features[0].properties.id;
-      return console.log(id);
+    getState: () => {
+      return county.state;
     },
-    getCoastalZone: () => {
-      var zone = requestData("/zones?type=coastal&point=" + latitude + "," + longitude).features[0].properties;
-      return console.log(JSON.stringify(zone));
+    getWFO: () => {
+      return county.cwa[0];
     },
-    getOffShoreZone: () => {
-      var zone = requestData("/zones?type=offshore&point=" + latitude + "," + longitude).features[0].properties;
-      return console.log(JSON.stringify(zone));
-    },
-    getFireZone: () => {
-      var zone = requestData("/zones?type=fire&point=" + latitude + "," + longitude).features[0].properties;
-      return console.log(JSON.stringify(zone));
-    },
-    getCountyZone: () => {
-      var zone = requestData("/zones?type=county&point=" + latitude + "," + longitude).features[0].properties;
-      return console.log(JSON.stringify(zone));
-    },
-    getCountyName: () => {
-      var zone = requestData("/zones?type=county&point=" + latitude + "," + longitude).features[0].properties.name;
-      return console.log(zone);
-    }
   }
   return obj;
 };
 
+function getForecastZoneFromCoords(latitude, longitude) {
+  var forecastZone = requestData("/zones?type=forecast&point=" + latitude + "," + longitude).features[0].properties;
+  var obj = {
+    getAll: () => {
+      return forecastZone;
+    },
+    getName: () => {
+      return forecastZone.name;
+    },
+    getID: () => {
+      return forecastZone.id;
+    },
+    getState: () => {
+      return forecastZone.state;
+    },
+    getWFO: () => {
+      return forecastZone.cwa[0];
+    },
+  }
+  return obj;
+};
+
+function getAlertsForZone(zoneID) {
+  var alerts = requestData("/alerts/active/zone/" + zoneID).features;
+  return alerts;
+  //Gonna add more stuff to these so we can get more specific with functions
+}
+
+/*
+var obj = {
+  allZones: allZones,
+  getLandZone: () => {
+    var zone = requestData("/zones?type=land&point=" + latitude + "," + longitude).features[0].properties;
+    return zone;
+  },
+  getMarineZone: () => {
+    var zone = requestData("/zones?type=marine&point=" + latitude + "," + longitude).features[0].properties;
+    return console.log(JSON.stringify(zone));
+  },
+  getForecastZone: () => {
+    var zone = requestData("/zones?type=forecast&point=" + latitude + "," + longitude).features[0].properties;
+    return console.log(JSON.stringify(zone));
+  },
+  getForecastZoneID: () => {
+    var id = requestData("/zones?type=coastal&point=" + latitude + "," + longitude).features[0].properties.id;
+    return console.log(id);
+  },
+  getCoastalZone: () => {
+    var zone = requestData("/zones?type=coastal&point=" + latitude + "," + longitude).features[0].properties;
+    return console.log(JSON.stringify(zone));
+  },
+  getOffShoreZone: () => {
+    var zone = requestData("/zones?type=offshore&point=" + latitude + "," + longitude).features[0].properties;
+    return console.log(JSON.stringify(zone));
+  },
+  getFireZone: () => {
+    var zone = requestData("/zones?type=fire&point=" + latitude + "," + longitude).features[0].properties;
+    return console.log(JSON.stringify(zone));
+  },
+  getCountyZone: () => {
+    var zone = requestData("/zones?type=county&point=" + latitude + "," + longitude).features[0].properties;
+    return console.log(JSON.stringify(zone));
+  },
+  getCountyName: () => {
+    var zone = requestData("/zones?type=county&point=" + latitude + "," + longitude).features[0].properties.name;
+    return console.log(zone);
+  }
+}*/
+
 /**
  * This gets the SPC outlook text, probablities and coordinates
  * @param days - What day outlook you want. Days 4-8 should be entered as 48
- * @returns Stuff
+ * @returns 
  **/
 function getSPCOutlook(day) {
   var possibleDays = [1,2,3,48];
@@ -105,7 +157,9 @@ function getSPCOutlook(day) {
 //getZonesFromCoords(39.7392,-104.9849).getCountyName();
 
 
-console.log(getSPCOutlook(1));
+//console.log(JSON.stringify(getForecastZoneFromCoords(39.7392,-104.9849).getID()));
+console.log(JSON.stringify(getForecastZoneFromCoords(38.08,-111.87).getID()));
+
 
 
 	//For sure add option to switch between OWL and SPC convective forecasts
