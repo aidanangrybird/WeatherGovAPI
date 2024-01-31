@@ -83,63 +83,115 @@ function getForecastZoneFromCoords(latitude, longitude) {
 function getAlertsForCoordsByType(latitude, longitude, code) {
   var alerts = requestData("/alerts/active?point=" + latitude + "," + longitude + "&code=" + code).features;
   var obj = {
+    /**
+     * Gets the name of the event like "Severe Thunderstorm Warning" or "Tornado Warning"
+     * @returns {string}
+     **/
     getEventName: () => {
       return alerts[0].properties.event;
     },
+    /**
+     * Gets the certainty of the warned weather happening from alert
+     * @returns {string} Certainty (observed, likely, possible, unlikely, unknown)
+     **/
     getCertainty: () => {
       return alerts[0].properties.certainty;
     },
+    /**
+     * Gets the severity of the warned weather happening from alert
+     * @returns {string} (extreme, severe, moderate, minor, unknown)
+     **/
     getSeverity: () => {
       return alerts[0].properties.severity;
     },
+    /**
+     * Gets the urgency of the warned weather happening from alert
+     * @returns {string} Urgency (immediate, expected, future, past, unknown)
+     **/
     getUrgency: () => {
       return alerts[0].properties.urgency;
     },
+    /**
+     * Gets the headline of the weather alert. this includes the name of the event, start time, end time and who sent it
+     * @returns {string} Headline of the weather alert
+     **/
     getHeadline: () => {
       return alerts[0].properties.headline;
     },
+    /**
+     * Gets the description of the storm, what hazards are coming with it and where it will impact
+     * @returns {string} Description of alert
+     **/
     getDescription: () => {
       return alerts[0].properties.description;
     },
+    /**
+     * Gets the instructions portion of the alert, tells you want to do if a tornado is coming
+     * @returns {string} The very important instructions
+     **/
     getInstructions: () => {
       return alerts[0].properties.instructions;
     },
+    /**
+     * Gets the what you should do from the alert. This could be "Shelter" or "Monitor"
+     * @returns {string} Action you should take
+     **/
     getResponse: () => {
       return alerts[0].properties.response;
     },
+    /**
+     * Gets how the hail threat was detected from alert if it applies
+     * @returns {string} How the hail threat was detected
+     **/
     getHailThreat: () => {
       if (alerts[0].properties.parameters.hasOwnProperty("hailThreat")) {
         return alerts[0].properties.parameters.hailThreat[0];
       } else {
-        return null;
+        return "";
       };
     },
+    /**
+     * Gets the maximum hail size from alert if it applies
+     * @returns {string} Maximum hail size
+     **/
     getMaxHailSize: () => {
       if (alerts[0].properties.parameters.hasOwnProperty("maxHailSize")) {
         return alerts[0].properties.parameters.maxHailSize[0];
       } else {
-        return null;
+        return "";
       };
     },
+    /**
+     * Gets how the tornado was detected or if one is possible from alert if it applies
+     * @returns {string} How the tornado was detected or if one is possible
+     **/
     getTornadoDetection: () => {
       if (alerts[0].properties.parameters.hasOwnProperty("tornadoDetection")) {
         return alerts[0].properties.parameters.tornadoDetection[0];
       } else {
-        return null;
+        return "";
       };
     },
+    /**
+     * Gets how the wind threat was detected from alert if it applies
+     * @returns {string} How the wind threat was detected
+     **/
     getWindThreat: () => {
       if (alerts[0].properties.parameters.hasOwnProperty("windThreat")) {
         return alerts[0].properties.parameters.windThreat[0];
       } else {
-        return null;
+        return "";
       };
     },
+    /**
+     * Gets the maximum wind gust from alert if it applies
+     * @returns {string} Maximum wind gust
+     **/
     getMaxWindGust: () => {
       if (alerts[0].properties.parameters.hasOwnProperty("maxWindGust")) {
         return alerts[0].properties.parameters.maxWindGust[0];
       } else {
-        return null;
+        return "";
       };
     },
   }
