@@ -84,23 +84,20 @@ function getForecastZoneFromCoords(latitude, longitude) {
 };
 
 /**
- * Gets county from coordinates
+ * Gets alerts of the code from coordinates
  * @param {number|string} latitude - Latitude of the coordinate pair
  * @param {number|string} longitude - Longitude of the coordinate pair
  * @param {string} code - SAME code of event
- * @returns {object} This is to get other values from an alert
+ * @returns {object} This is to get certain values from an alert
  **/
 function getAlertsForCoordsByType(latitude, longitude, code) {
-  var alerts = requestData("/alerts?point=" + latitude + "," + longitude + "&code=" + code).features;
+  var alerts = requestData("/alerts/active?point=" + latitude + "," + longitude + "&code=" + code).features;
   var obj = {
-    all: () => {
-      return alerts[0];
-    },
     getEventName: () => {
       return alerts[0].properties.event;
     },
     getCertainty: () => {
-      return alerts[0].properties.coordinates;
+      return alerts[0].properties.certainty;
     },
     getSeverity: () => {
       return alerts[0].properties.severity;
