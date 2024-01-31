@@ -1,4 +1,4 @@
-var XMLHttpRequest = require("xmlhttprequest").XMLHttpRequest;
+let XMLHttpRequest = require("xmlhttprequest").XMLHttpRequest;
 const api = "https://api.weather.gov";
 const coordinateRegEx = new RegExp("^(?:([^\D]*)(-?)(\d{0,3})\.(\d+))$");
 var xhr = new XMLHttpRequest();
@@ -19,6 +19,7 @@ function requestData(url) {
  * @returns {object} This is to get the name and other values for a county
  **/
 function getCountyFromCoords(latitude, longitude) {
+  //Add regex to this so coordinates that are not formatted properly can't get entered in
   var county = requestData("/zones?type=county&point=" + latitude + "," + longitude).features[0].properties;
   //var county = requestData("/zones?type=county&point=" + latitude + "," + longitude).features[0].properties;
   var obj = {
@@ -55,6 +56,7 @@ function getCountyFromCoords(latitude, longitude) {
 };
 //(Might be very useless)
 function getForecastZoneFromCoords(latitude, longitude) {
+  //Add regex to this so coordinates that are not formatted properly can't get entered in
   var forecastZone = requestData("/zones?type=forecast&point=" + latitude + "," + longitude).features[0].properties;
   var obj = {
     getName: () => {
@@ -82,6 +84,7 @@ function getForecastZoneFromCoords(latitude, longitude) {
  * @returns This is to get certain values from an alert
  **/
 function getAlerts(latitude, longitude, code) {
+  //Add regex to this so coordinates that are not formatted properly can't get entered in
   var alerts = requestData("/alerts/active?point=" + latitude + "," + longitude + "&code=" + code).features;
   //Add thing to this that gets 
   var obj = {
