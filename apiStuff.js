@@ -13,26 +13,47 @@ function requestData(url) {
 }
 
 /**
- * Gets zones from coordinates
- * @param latitude - Latitude of the coordinate pair
- * @param longitude - Longitude of the coordinate pair
- * @returns 
+ * Gets county from coordinates
+ * @param {number|string} latitude - Latitude of the coordinate pair
+ * @param {number|string} longitude - Longitude of the coordinate pair
+ * @returns {function} This is to get the name and other values for a county
  **/
 function getCountyFromCoords(latitude, longitude) {
   var county = requestData("/zones?type=county&point=" + latitude + "," + longitude).features[0].properties;
+  //var county = requestData("/zones?type=county&point=" + latitude + "," + longitude).features[0].properties;
   var obj = {
+    /**
+     * Gets the entire JSON of the county
+     * @returns {JSON} JSON of county
+     **/
     getAll: () => {
       return county;
     },
+    /**
+     * Gets the name of the county
+     * @returns {string} County name
+     **/
     getName: () => {
       return county.name;
     },
+    /**
+     * Gets the ID of the county
+     * @returns {string} County ID
+     **/
     getID: () => {
       return county.id;
     },
+    /**
+     * Gets the two letter state the county is in
+     * @returns {string} State
+     **/
     getState: () => {
       return county.state;
     },
+    /**
+     * Gets the WFO the county is in
+     * @returns {string}
+     **/
     getWFO: () => {
       return county.cwa[0];
     },
@@ -111,37 +132,33 @@ var obj = {
 
 /**
  * This gets the SPC outlook text, probablities and coordinates
- * @param days - What day outlook you want. Days 4-8 should be entered as 48
- * @returns 
+ * @param {number} day - What day outlook you want. Days 4-8 should be entered as 48
+ * @param {string} probablityPoints - Categorical convective outlook and probabilistic coordinates
+ * @param {string} outlookNarrative - The forecast discussion beneath every convective outlook
+ * @returns {object} Returns both the probability points and outlook narrative
  **/
 function getSPCOutlook(day) {
   var possibleDays = [1,2,3,48];
   var probablityPointsId;
-  var probablityPointsIdOld
   var probablityPoints;
   var outlookNarrativeId;
-  var outlookNarrativeIdOld;
   var outlookNarrative;
-  if (!possibleDays.includes(day)) {
+  if (!possibleDays.includes(day) || typeof day !== "number") {
     console.log(day + " is not a valid value");
   } if (day == 48) {
-    probablityPointsIdOld = JSON.stringify(requestData("/products?wmoid=WUUS48&type=PTS&limit=1"));
-    probablityPointsId = JSON.parse(probablityPointsIdOld.slice(86,-2)).id;
+    probablityPointsId = JSON.parse(JSON.stringify(requestData("/products?wmoid=WUUS48&type=PTS&limit=1")).slice(86,-2)).id;
     probablityPoints = requestData("/products/" + probablityPointsId).productText;
-    probablityNarrativeIdOld = JSON.stringify(requestData("/products?wmoid=ACUS48&type=SWO&limit=1"));
-    outlookNarrativeId = JSON.parse(probablityNarrativeIdOld.slice(86,-2)).id;
+    outlookNarrativeId = JSON.parse(JSON.stringify(requestData("/products?wmoid=ACUS48&type=SWO&limit=1")).slice(86,-2)).id;
     outlookNarrative = requestData("/products/" + outlookNarrativeId).productText;
     var obj = {
       probablityPoints: probablityPoints,
       outlookNarrative: outlookNarrative
     };
     return obj;
-  } else {
-    probablityPointsIdOld = JSON.stringify(requestData("/products?wmoid=WUUS0" + day + "&type=PTS&limit=1"));
-    probablityPointsId = JSON.parse(probablityPointsIdOld.slice(86,-2)).id;
+  } if (day != 48) {
+    probablityPointsId = JSON.parse(JSON.stringify(requestData("/products?wmoid=WUUS0" + day + "&type=PTS&limit=1")).slice(86,-2)).id;
     probablityPoints = requestData("/products/" + probablityPointsId).productText;
-    probablityNarrativeIdOld = JSON.stringify(requestData("/products?wmoid=ACUS0" + day + "&type=SWO&limit=1"));
-    outlookNarrativeId = JSON.parse(probablityNarrativeIdOld.slice(86,-2)).id;
+    outlookNarrativeId = JSON.parse(JSON.stringify(requestData("/products?wmoid=ACUS0" + day + "type=SWO&limit=1")).slice(86,-2)).id;
     outlookNarrative = requestData("/products/" + outlookNarrativeId).productText;
     var obj = {
       probablityPoints: probablityPoints,
@@ -151,14 +168,15 @@ function getSPCOutlook(day) {
   };
 };
 
-//getZonesFromCoords(39.7392,-104.9849).getLandZone();
-//getZonesFromCoords(39.7392,-104.9849).getForecastZone();
-//getZonesFromCoords(39.7392,-104.9849).getCountyZone();
-//getZonesFromCoords(39.7392,-104.9849).getCountyName();
+//console.log(getCountyFromCoords(39.7392,-104.9849).getID());
+//console.log(getCountyFromCoords(39.7392,-104.9849).getName());
+//console.log(getCountyFromCoords(39.7392,-104.9849).getState());
+console.log(getCountyFromCoords(39.7392,-104.9849).getWFO());
 
+//console.log(JSON.stringify(getSPCOutlook(48)));
 
 //console.log(JSON.stringify(getForecastZoneFromCoords(39.7392,-104.9849).getID()));
-console.log(JSON.stringify(getForecastZoneFromCoords(38.08,-111.87).getID()));
+//console.log(JSON.stringify(getForecastZoneFromCoords(38.08,-111.87).getID()));
 
 
 
