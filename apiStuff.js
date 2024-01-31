@@ -16,7 +16,7 @@ function requestData(url) {
  * Gets county from coordinates
  * @param {number|string} latitude - Latitude of the coordinate pair
  * @param {number|string} longitude - Longitude of the coordinate pair
- * @returns {function} This is to get the name and other values for a county
+ * @returns {object} This is to get the name and other values for a county
  **/
 function getCountyFromCoords(latitude, longitude) {
   var county = requestData("/zones?type=county&point=" + latitude + "," + longitude).features[0].properties;
@@ -83,9 +83,80 @@ function getForecastZoneFromCoords(latitude, longitude) {
   return obj;
 };
 
-function getAlertsForZone(zoneID) {
-  var alerts = requestData("/alerts/active/zone/" + zoneID).features;
-  return alerts;
+/**
+ * Gets county from coordinates
+ * @param {number|string} latitude - Latitude of the coordinate pair
+ * @param {number|string} longitude - Longitude of the coordinate pair
+ * @param {string} code - SAME code of event
+ * @returns {object} This is to get other values from an alert
+ **/
+function getAlertsForCoordsByType(latitude, longitude, code) {
+  var alerts = requestData("/alerts?point=" + latitude + "," + longitude + "&code=" + code).features;
+  var obj = {
+    all: () => {
+      return alerts[0];
+    },
+    getEventName: () => {
+      return alerts[0].properties.event;
+    },
+    getCertainty: () => {
+      return alerts[0].properties.coordinates;
+    },
+    getSeverity: () => {
+      return alerts[0].properties.severity;
+    },
+    getUrgency: () => {
+      return alerts[0].properties.urgency;
+    },
+    getHeadline: () => {
+      return alerts[0].properties.headline;
+    },
+    getDescription: () => {
+      return alerts[0].properties.description;
+    },
+    getInstructions: () => {
+      return alerts[0].properties.instructions;
+    },
+    getResponse: () => {
+      return alerts[0].properties.response;
+    },
+    getHailThreat: () => {
+      if (alerts[0].properties.parameters.hasOwnProperty("hailThreat")) {
+        return alerts[0].properties.parameters.hailThreat[0];
+      } else {
+        return null;
+      };
+    },
+    getMaxHailSize: () => {
+      if (alerts[0].properties.parameters.hasOwnProperty("maxHailSize")) {
+        return alerts[0].properties.parameters.maxHailSize[0];
+      } else {
+        return null;
+      };
+    },
+    getTornadoDetection: () => {
+      if (alerts[0].properties.parameters.hasOwnProperty("tornadoDetection")) {
+        return alerts[0].properties.parameters.tornadoDetection[0];
+      } else {
+        return null;
+      };
+    },
+    getWindThreat: () => {
+      if (alerts[0].properties.parameters.hasOwnProperty("windThreat")) {
+        return alerts[0].properties.parameters.windThreat[0];
+      } else {
+        return null;
+      };
+    },
+    getMaxWindGust: () => {
+      if (alerts[0].properties.parameters.hasOwnProperty("maxWindGust")) {
+        return alerts[0].properties.parameters.maxWindGust[0];
+      } else {
+        return null;
+      };
+    },
+  }
+  return obj;
   //Gonna add more stuff to these so we can get more specific with functions
 }
 
@@ -132,7 +203,7 @@ var obj = {
 
 /**
  * This gets the SPC outlook text, probablities and coordinates
- * @param {number} day - What day outlook you want. Days 4-8 should be entered as 48
+ * @param {number | string} day - What day outlook you want. Days 4-8 should be entered as 48
  * @param {string} probablityPoints - Categorical convective outlook and probabilistic coordinates
  * @param {string} outlookNarrative - The forecast discussion beneath every convective outlook
  * @returns {object} Returns both the probability points and outlook narrative
@@ -171,7 +242,7 @@ function getSPCOutlook(day) {
 //console.log(getCountyFromCoords(39.7392,-104.9849).getID());
 //console.log(getCountyFromCoords(39.7392,-104.9849).getName());
 //console.log(getCountyFromCoords(39.7392,-104.9849).getState());
-console.log(getCountyFromCoords(39.7392,-104.9849).getWFO());
+//console.log(getCountyFromCoords(39.7392,-104.9849).getWFO());
 
 //console.log(JSON.stringify(getSPCOutlook(48)));
 
