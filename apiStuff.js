@@ -23,13 +23,6 @@ function getCountyFromCoords(latitude, longitude) {
   //var county = requestData("/zones?type=county&point=" + latitude + "," + longitude).features[0].properties;
   var obj = {
     /**
-     * Gets the entire JSON of the county
-     * @returns {JSON} JSON of county
-     **/
-    getAll: () => {
-      return county;
-    },
-    /**
      * Gets the name of the county
      * @returns {string} County name
      **/
@@ -64,9 +57,6 @@ function getCountyFromCoords(latitude, longitude) {
 function getForecastZoneFromCoords(latitude, longitude) {
   var forecastZone = requestData("/zones?type=forecast&point=" + latitude + "," + longitude).features[0].properties;
   var obj = {
-    getAll: () => {
-      return forecastZone;
-    },
     getName: () => {
       return forecastZone.name;
     },
