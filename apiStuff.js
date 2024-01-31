@@ -13,7 +13,7 @@ function requestData(url) {
 }
 
 /**
- * Gets county from coordinates
+ * Gets county from coordinates (Might be very useless)
  * @param {number|string} latitude - Latitude of the coordinate pair
  * @param {number|string} longitude - Longitude of the coordinate pair
  * @returns {object} This is to get the name and other values for a county
@@ -53,7 +53,7 @@ function getCountyFromCoords(latitude, longitude) {
   }
   return obj;
 };
-
+//(Might be very useless)
 function getForecastZoneFromCoords(latitude, longitude) {
   var forecastZone = requestData("/zones?type=forecast&point=" + latitude + "," + longitude).features[0].properties;
   var obj = {
@@ -73,16 +73,32 @@ function getForecastZoneFromCoords(latitude, longitude) {
   return obj;
 };
 
+//Might change this function back to getAlertsFromCoordsByType in the future
 /**
  * Gets alerts of the code from coordinates
  * @param {number|string} latitude - Latitude of the coordinate pair
  * @param {number|string} longitude - Longitude of the coordinate pair
  * @param {string} code - SAME code of event
- * @returns {object} This is to get certain values from an alert
+ * @returns This is to get certain values from an alert
  **/
-function getAlertsForCoordsByType(latitude, longitude, code) {
+function getAlerts(latitude, longitude, code) {
   var alerts = requestData("/alerts/active?point=" + latitude + "," + longitude + "&code=" + code).features;
+  //Add thing to this that gets 
   var obj = {
+    /**
+     * Gets the effective start time of the alert
+     * @returns {string}
+     **/
+    getEffectiveTime: () => {
+      return alerts[0].properties.effective;
+    },
+    /**
+     * Gets the expiration time of the alert
+     * @returns {string}
+     **/
+    getExpiresTime: () => {
+      return alerts[0].properties.expires;
+    },
     /**
      * Gets the name of the event like "Severe Thunderstorm Warning" or "Tornado Warning"
      * @returns {string}
@@ -130,7 +146,7 @@ function getAlertsForCoordsByType(latitude, longitude, code) {
      * @returns {string} The very important instructions
      **/
     getInstructions: () => {
-      return alerts[0].properties.instructions;
+      return alerts[0].properties.instruction;
     },
     /**
      * Gets the what you should do from the alert. This could be "Shelter" or "Monitor"
@@ -199,47 +215,6 @@ function getAlertsForCoordsByType(latitude, longitude, code) {
   //Gonna add more stuff to these so we can get more specific with functions
 }
 
-/*
-var obj = {
-  allZones: allZones,
-  getLandZone: () => {
-    var zone = requestData("/zones?type=land&point=" + latitude + "," + longitude).features[0].properties;
-    return zone;
-  },
-  getMarineZone: () => {
-    var zone = requestData("/zones?type=marine&point=" + latitude + "," + longitude).features[0].properties;
-    return console.log(JSON.stringify(zone));
-  },
-  getForecastZone: () => {
-    var zone = requestData("/zones?type=forecast&point=" + latitude + "," + longitude).features[0].properties;
-    return console.log(JSON.stringify(zone));
-  },
-  getForecastZoneID: () => {
-    var id = requestData("/zones?type=coastal&point=" + latitude + "," + longitude).features[0].properties.id;
-    return console.log(id);
-  },
-  getCoastalZone: () => {
-    var zone = requestData("/zones?type=coastal&point=" + latitude + "," + longitude).features[0].properties;
-    return console.log(JSON.stringify(zone));
-  },
-  getOffShoreZone: () => {
-    var zone = requestData("/zones?type=offshore&point=" + latitude + "," + longitude).features[0].properties;
-    return console.log(JSON.stringify(zone));
-  },
-  getFireZone: () => {
-    var zone = requestData("/zones?type=fire&point=" + latitude + "," + longitude).features[0].properties;
-    return console.log(JSON.stringify(zone));
-  },
-  getCountyZone: () => {
-    var zone = requestData("/zones?type=county&point=" + latitude + "," + longitude).features[0].properties;
-    return console.log(JSON.stringify(zone));
-  },
-  getCountyName: () => {
-    var zone = requestData("/zones?type=county&point=" + latitude + "," + longitude).features[0].properties.name;
-    return console.log(zone);
-  }
-}*/
-
 /**
  * This gets the SPC outlook text, probablities and coordinates
  * @param {number | string} day - What day outlook you want. Days 4-8 should be entered as 48
@@ -278,6 +253,7 @@ function getSPCOutlook(day) {
   };
 };
 
+//This was a lot of testing an pain
 //console.log(getCountyFromCoords(39.7392,-104.9849).getID());
 //console.log(getCountyFromCoords(39.7392,-104.9849).getName());
 //console.log(getCountyFromCoords(39.7392,-104.9849).getState());
@@ -287,6 +263,17 @@ function getSPCOutlook(day) {
 
 //console.log(JSON.stringify(getForecastZoneFromCoords(39.7392,-104.9849).getID()));
 //console.log(JSON.stringify(getForecastZoneFromCoords(38.08,-111.87).getID()));
+
+console.log("getAlerts(34.22,-90.53,'FFA').getEffectiveTime()");
+console.log(getAlerts(34.22,-90.53,"FFA").getEffectiveTime());
+console.log("getAlerts(34.22,-90.53,'FFA').getInstructions()");
+console.log(getAlerts(34.22,-90.53,"FFA").getInstructions());
+console.log("getAlerts(34.22,-90.53,'FFA').getHeadline()");
+console.log(getAlerts(34.22,-90.53,"FFA").getHeadline());
+console.log("getAlerts(34.22,-90.53,'FFA').getExpiresTime()");
+console.log(getAlerts(34.22,-90.53,"FFA").getExpiresTime());
+console.log("getAlerts(34.22,-90.53,'FFA').getDescription()");
+console.log(getAlerts(34.22,-90.53,"FFA").getDescription());
 
 
 
