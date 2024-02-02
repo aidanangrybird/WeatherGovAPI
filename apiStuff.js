@@ -1,7 +1,7 @@
 let XMLHttpRequest = require("xmlhttprequest").XMLHttpRequest;
 const api = "https://api.weather.gov";
 const longCoordRegEx = new RegExp("^(?:([^\D]*)(-?)(\d{0,3})\.(\d+))$");
-const shortCoordRegEx = new RegExp("/\d{8}/gm");
+const shortCoordRegEx = new RegExp("(\d{8})", "g");
 var xhr = new XMLHttpRequest();
 xhr.responseType = "json";
 
@@ -22,8 +22,12 @@ function checkCoordinates(latitude, longitude) {
   };
 };
 
+//Eventually we can try and make this
 function polygonBuilder(inputText) {
-  var coordinateSets = inputText.match(shortCoordRegEx);
+  var text = inputText;
+  //return text;
+  //text = "1111111 3434344s"
+  var coordinateSets = shortCoordRegEx.exec(inputText);
   return coordinateSets;
 };
 
@@ -285,7 +289,7 @@ function getSPCOutlook(day) {
 //console.log(getCountyFromCoords(39.7392,-104.9849).getWFO());
 
 console.log(getSPCOutlook(2).getProbabiltyPoints());
-console.log(polygonBuilder(getSPCOutlook(2).getProbabiltyPoints()));
+//console.log(polygonBuilder(getSPCOutlook(2).getProbabiltyPoints()));
 
 //console.log(JSON.stringify(getForecastZoneFromCoords(39.7392,-104.9849).getID()));
 //console.log(JSON.stringify(getForecastZoneFromCoords(38.08,-111.87).getID()));
