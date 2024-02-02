@@ -10,7 +10,7 @@ function requestData(url) {
   xhr.setRequestHeader("User-Agent", "(Oklahoma Weather Lab, owl@ou.edu)");
   xhr.send();
   return JSON.parse(xhr.responseText);
-}
+};
 
 function checkCoordinates(latitude, longitude) {
   if (coordinateRegEx.test(longitude) && coordinateRegEx.test(latitude)) {
@@ -59,7 +59,7 @@ function getCountyFromCoords(latitude, longitude) {
     getWFO: () => {
       return county.cwa[0];
     },
-  }
+  };
   return obj;
 };
 //(Might be very useless)
@@ -78,7 +78,7 @@ function getForecastZoneFromCoords(latitude, longitude) {
     getWFO: () => {
       return forecastZone.cwa[0];
     },
-  }
+  };
   return obj;
 };
 
@@ -219,10 +219,10 @@ function getAlerts(latitude, longitude, code) {
         return "";
       };
     },
-  }
+  };
   return obj;
   //Gonna add more stuff to these so we can get more specific with functions
-}
+};
 
 /**
  * This gets the SPC outlook text, probablities and coordinates
@@ -232,7 +232,7 @@ function getAlerts(latitude, longitude, code) {
  * @returns {object} Returns both the probability points and outlook narrative
  **/
 function getSPCOutlook(day) {
-  var possibleDays = [1,2,3,48];
+  var possibleDays = [1, 2, 3, 48];
   var probablityPointsId;
   var probablityPoints;
   var outlookNarrativeId;
@@ -240,9 +240,9 @@ function getSPCOutlook(day) {
   if (!possibleDays.includes(day) || typeof day !== "number") {
     console.log(day + " is not a valid value");
   } if (day == 48) {
-    probablityPointsId = JSON.parse(JSON.stringify(requestData("/products?wmoid=WUUS48&type=PTS&limit=1")).slice(86,-2)).id;
+    probablityPointsId = JSON.parse(JSON.stringify(requestData("/products?wmoid=WUUS48&type=PTS&limit=1")).slice(86, -2)).id;
     probablityPoints = requestData("/products/" + probablityPointsId).productText;
-    outlookNarrativeId = JSON.parse(JSON.stringify(requestData("/products?wmoid=ACUS48&type=SWO&limit=1")).slice(86,-2)).id;
+    outlookNarrativeId = JSON.parse(JSON.stringify(requestData("/products?wmoid=ACUS48&type=SWO&limit=1")).slice(86, -2)).id;
     outlookNarrative = requestData("/products/" + outlookNarrativeId).productText;
     var obj = {
       probablityPoints: probablityPoints,
@@ -250,9 +250,9 @@ function getSPCOutlook(day) {
     };
     return obj;
   } if (day != 48) {
-    probablityPointsId = JSON.parse(JSON.stringify(requestData("/products?wmoid=WUUS0" + day + "&type=PTS&limit=1")).slice(86,-2)).id;
+    probablityPointsId = JSON.parse(JSON.stringify(requestData("/products?wmoid=WUUS0" + day + "&type=PTS&limit=1")).slice(86, -2)).id;
     probablityPoints = requestData("/products/" + probablityPointsId).productText;
-    outlookNarrativeId = JSON.parse(JSON.stringify(requestData("/products?wmoid=ACUS0" + day + "type=SWO&limit=1")).slice(86,-2)).id;
+    outlookNarrativeId = JSON.parse(JSON.stringify(requestData("/products?wmoid=ACUS0" + day + "type=SWO&limit=1")).slice(86, -2)).id;
     outlookNarrative = requestData("/products/" + outlookNarrativeId).productText;
     var obj = {
       probablityPoints: probablityPoints,
@@ -274,39 +274,39 @@ function getSPCOutlook(day) {
 //console.log(JSON.stringify(getForecastZoneFromCoords(38.08,-111.87).getID()));
 
 console.log("getAlerts(34.22,-90.53,'FFA').getEffectiveTime()");
-console.log(getAlerts(34.22,-90.53,"FFA").getEffectiveTime());
+console.log(getAlerts(34.22, -90.53, "FFA").getEffectiveTime());
 console.log("getAlerts(34.22,-90.53,'FFA').getInstructions()");
-console.log(getAlerts(34.22,-90.53,"FFA").getInstructions());
+console.log(getAlerts(34.22, -90.53, "FFA").getInstructions());
 console.log("getAlerts(34.22,-90.53,'FFA').getHeadline()");
-console.log(getAlerts(34.22,-90.53,"FFA").getHeadline());
+console.log(getAlerts(34.22, -90.53, "FFA").getHeadline());
 console.log("getAlerts(34.22,-90.53,'FFA').getExpiresTime()");
-console.log(getAlerts(34.22,-90.53,"FFA").getExpiresTime());
+console.log(getAlerts(34.22, -90.53, "FFA").getExpiresTime());
 console.log("getAlerts(34.22,-90.53,'FFA').getDescription()");
-console.log(getAlerts(34.22,-90.53,"FFA").getDescription());
+console.log(getAlerts(34.22, -90.53, "FFA").getDescription());
 
 
 
-	//For sure add option to switch between OWL and SPC convective forecasts
-	
-	//Create functions that can deconstruct the api data so each part of the zone or alert can be individually addressed
-	//This will be better than having to do the pain of what I had to do in coordinateSelectionHelper
-	//Also another part that will need to be done is decontructing the product text in a way where
-	//we can pull out coordinates and probabilities
-	
-	
-	//API documentation: https://www.weather.gov/documentation/services-web-api
-	//Some important NWS API Product Type Code:
-	//WWP: Severe Thunderstorm / Tornado Watch Probabilities
-	//PWO: Public Severe Weather Outlook
-	//HWO: Hazardous Weather Outlook
-	//PTS: Probabilistic Outlook Points (More notes on this below)
-	//This is the coordinates and probabilities for each of the convective outlooks.
-	//The wmoCollectiveID within each of them is how we would get which day that product is for
-	//WUUS01 is day 1 outlook, WUUS02 is day 2 outlook, WUUS03 is day 3 outlook, WUUS48 is days 4-8 outlook
-	//SWO: Severe Storm Outlook Narrative (AC)
-	//This is the text portion of the convective outlooks
-	//SEL: Severe Local Storm Watch and Watch Cancellation Msg
-	//The ones below will be handled with the active alerts section of the api:
-	//TOR: Tornado Warning
-	//SVR: Sever Thunderstorm Warning
-	//SVS: Special Weather Statement
+//For sure add option to switch between OWL and SPC convective forecasts
+
+//Create functions that can deconstruct the api data so each part of the zone or alert can be individually addressed
+//This will be better than having to do the pain of what I had to do in coordinateSelectionHelper
+//Also another part that will need to be done is decontructing the product text in a way where
+//we can pull out coordinates and probabilities
+
+
+//API documentation: https://www.weather.gov/documentation/services-web-api
+//Some important NWS API Product Type Code:
+//WWP: Severe Thunderstorm / Tornado Watch Probabilities
+//PWO: Public Severe Weather Outlook
+//HWO: Hazardous Weather Outlook
+//PTS: Probabilistic Outlook Points (More notes on this below)
+//This is the coordinates and probabilities for each of the convective outlooks.
+//The wmoCollectiveID within each of them is how we would get which day that product is for
+//WUUS01 is day 1 outlook, WUUS02 is day 2 outlook, WUUS03 is day 3 outlook, WUUS48 is days 4-8 outlook
+//SWO: Severe Storm Outlook Narrative (AC)
+//This is the text portion of the convective outlooks
+//SEL: Severe Local Storm Watch and Watch Cancellation Msg
+//The ones below will be handled with the active alerts section of the api:
+//TOR: Tornado Warning
+//SVR: Sever Thunderstorm Warning
+//SVS: Special Weather Statement
