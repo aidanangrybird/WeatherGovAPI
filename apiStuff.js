@@ -1,6 +1,7 @@
 let XMLHttpRequest = require("xmlhttprequest").XMLHttpRequest;
 const api = "https://api.weather.gov";
-const coordinateRegEx = new RegExp("^(?:([^\D]*)(-?)(\d{0,3})\.(\d+))$");
+const longCoordRegEx = new RegExp("^(?:([^\D]*)(-?)(\d{0,3})\.(\d+))$");
+const shortCoordRegEx = new RegExp("/\d{8}/gm");
 var xhr = new XMLHttpRequest();
 xhr.responseType = "json";
 
@@ -13,12 +14,17 @@ function requestData(url) {
 };
 
 function checkCoordinates(latitude, longitude) {
-  if (coordinateRegEx.test(longitude) && coordinateRegEx.test(latitude)) {
+  if (longCoordRegEx.test(longitude) && longCoordRegEx.test(latitude)) {
     return true;
   };
-  if (!coordinateRegEx.test(longitude) || !coordinateRegEx.test(latitude)) {
+  if (!longCoordRegEx.test(longitude) || !longCoordRegEx.test(latitude)) {
     return false;
   };
+};
+
+function polygonBuilder(inputText) {
+  var coordinateSets = inputText.match(shortCoordRegEx);
+  return coordinateSets;
 };
 
 /**
@@ -226,37 +232,47 @@ function getAlerts(latitude, longitude, code) {
 
 /**
  * This gets the SPC outlook text, probablities and coordinates
- * @param {number | string} day - What day outlook you want. Days 4-8 should be entered as 48
- * @param {string} probablityPoints - Categorical convective outlook and probabilistic coordinates
- * @param {string} outlookNarrative - The forecast discussion beneath every convective outlook
+ * @param {number} day - What day outlook you want. Days 4-8 should be entered as 48
  * @returns {object} Returns both the probability points and outlook narrative
  **/
 function getSPCOutlook(day) {
   var possibleDays = [1, 2, 3, 48];
-  var probablityPointsId;
-  var probablityPoints;
-  var outlookNarrativeId;
-  var outlookNarrative;
   if (!possibleDays.includes(day) || typeof day !== "number") {
     console.log(day + " is not a valid value");
-  } if (day == 48) {
-    probablityPointsId = JSON.parse(JSON.stringify(requestData("/products?wmoid=WUUS48&type=PTS&limit=1")).slice(86, -2)).id;
-    probablityPoints = requestData("/products/" + probablityPointsId).productText;
-    outlookNarrativeId = JSON.parse(JSON.stringify(requestData("/products?wmoid=ACUS48&type=SWO&limit=1")).slice(86, -2)).id;
-    outlookNarrative = requestData("/products/" + outlookNarrativeId).productText;
+  } else {
     var obj = {
-      probablityPoints: probablityPoints,
-      outlookNarrative: outlookNarrative
-    };
-    return obj;
-  } if (day != 48) {
-    probablityPointsId = JSON.parse(JSON.stringify(requestData("/products?wmoid=WUUS0" + day + "&type=PTS&limit=1")).slice(86, -2)).id;
-    probablityPoints = requestData("/products/" + probablityPointsId).productText;
-    outlookNarrativeId = JSON.parse(JSON.stringify(requestData("/products?wmoid=ACUS0" + day + "type=SWO&limit=1")).slice(86, -2)).id;
-    outlookNarrative = requestData("/products/" + outlookNarrativeId).productText;
-    var obj = {
-      probablityPoints: probablityPoints,
-      outlookNarrative: outlookNarrative
+      /**
+       * This gets the SPC outlook text
+       * @returns {string} Returns outlook narrative
+       **/
+      getNarrative: () => {
+        if (day == 48) {
+          outlookNarrativeId = JSON.parse(JSON.stringify(requestData("/products?wmoid=ACUS48&type=SWO&limit=1")).slice(86, -2)).id;
+          outlookNarrative = requestData("/products/" + outlookNarrativeId).productText;
+          return outlookNarrative;
+        };
+        if (day != 48) {
+          outlookNarrativeId = JSON.parse(JSON.stringify(requestData("/products?wmoid=ACUS0" + day + "type=SWO&limit=1")).slice(86, -2)).id;
+          outlookNarrative = requestData("/products/" + outlookNarrativeId).productText;
+          return outlookNarrative;
+        };
+      },
+      /**
+       * This gets the SPC outlook probablities and coordinates
+       * @returns {string} Returns the probability points
+       **/
+      getProbabiltyPoints: () => {
+        if (day == 48) {
+          probablityPointsId = JSON.parse(JSON.stringify(requestData("/products?wmoid=WUUS48&type=PTS&limit=1")).slice(86, -2)).id;
+          probablityPoints = requestData("/products/" + probablityPointsId).productText;
+          return probablityPoints;
+        };
+        if (day != 48) {
+          probablityPointsId = JSON.parse(JSON.stringify(requestData("/products?wmoid=WUUS0" + day + "&type=PTS&limit=1")).slice(86, -2)).id;
+          probablityPoints = requestData("/products/" + probablityPointsId).productText;
+          return probablityPoints;
+        };
+      },
     };
     return obj;
   };
@@ -268,11 +284,12 @@ function getSPCOutlook(day) {
 //console.log(getCountyFromCoords(39.7392,-104.9849).getState());
 //console.log(getCountyFromCoords(39.7392,-104.9849).getWFO());
 
-//console.log(JSON.stringify(getSPCOutlook(48)));
+console.log(getSPCOutlook(2).getProbabiltyPoints());
+console.log(polygonBuilder(getSPCOutlook(2).getProbabiltyPoints()));
 
 //console.log(JSON.stringify(getForecastZoneFromCoords(39.7392,-104.9849).getID()));
 //console.log(JSON.stringify(getForecastZoneFromCoords(38.08,-111.87).getID()));
-
+/*
 console.log("getAlerts(34.22,-90.53,'FFA').getEffectiveTime()");
 console.log(getAlerts(34.22, -90.53, "FFA").getEffectiveTime());
 console.log("getAlerts(34.22,-90.53,'FFA').getInstructions()");
@@ -283,7 +300,7 @@ console.log("getAlerts(34.22,-90.53,'FFA').getExpiresTime()");
 console.log(getAlerts(34.22, -90.53, "FFA").getExpiresTime());
 console.log("getAlerts(34.22,-90.53,'FFA').getDescription()");
 console.log(getAlerts(34.22, -90.53, "FFA").getDescription());
-
+*/
 
 
 //For sure add option to switch between OWL and SPC convective forecasts
