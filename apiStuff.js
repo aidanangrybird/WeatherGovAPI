@@ -1,7 +1,7 @@
 let XMLHttpRequest = require("xmlhttprequest").XMLHttpRequest;
 const api = "https://api.weather.gov";
-const longCoordRegEx = new RegExp("^(?:([^\D]*)(-?)(\d{0,3})\.(\d+))$");
-const shortCoordRegEx = new RegExp("(\d{8})", "g");
+const longCoordRegEx = new RegExp("(?:([^\\D]*)(-?)(\\d{0,3})\\.(\\d+))");
+const shortCoordRegEx = new RegExp("\\d{8}", "g");
 var xhr = new XMLHttpRequest();
 xhr.responseType = "json";
 
@@ -27,7 +27,7 @@ function polygonBuilder(inputText) {
   var text = inputText;
   //return text;
   //text = "1111111 3434344s"
-  var coordinateSets = shortCoordRegEx.exec(inputText);
+  var coordinateSets = inputText.matchAll(shortCoordRegEx);
   return coordinateSets;
 };
 
@@ -230,7 +230,11 @@ function getAlerts(latitude, longitude, code) {
       };
     },
   };
-  return obj;
+  if (alerts.length > 0) {
+    return obj;
+  } else {
+    return "";
+  };
   //Gonna add more stuff to these so we can get more specific with functions
 };
 
@@ -282,13 +286,17 @@ function getSPCOutlook(day) {
   };
 };
 
+//Need to add error handling so that in case there are no alerts available for an area, it tells you that there are none
+
 //This was a lot of testing an pain
 //console.log(getCountyFromCoords(39.7392,-104.9849).getID());
 //console.log(getCountyFromCoords(39.7392,-104.9849).getName());
 //console.log(getCountyFromCoords(39.7392,-104.9849).getState());
 //console.log(getCountyFromCoords(39.7392,-104.9849).getWFO());
 
-console.log(getSPCOutlook(2).getProbabiltyPoints());
+//console.log(checkCoordinates(39.7392,-104.9849));
+
+//console.log(getSPCOutlook(2).getProbabiltyPoints());
 //console.log(polygonBuilder(getSPCOutlook(2).getProbabiltyPoints()));
 
 //console.log(JSON.stringify(getForecastZoneFromCoords(39.7392,-104.9849).getID()));
@@ -306,6 +314,7 @@ console.log("getAlerts(34.22,-90.53,'FFA').getDescription()");
 console.log(getAlerts(34.22, -90.53, "FFA").getDescription());
 */
 
+console.log(getAlerts(33.1,-99.81,"TOR").getMaxHailSize());
 
 //For sure add option to switch between OWL and SPC convective forecasts
 
