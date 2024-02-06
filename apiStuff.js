@@ -92,6 +92,8 @@ function getForecastZoneFromCoords(latitude, longitude) {
   return obj;
 };
 
+//Will need to rework some portion of this so that in case there is more than
+// one alert of the same code that the amount of them can be checked and each one checked.
 //Might change this function back to getAlertsFromCoordsByType in the future
 /**
  * Gets alerts of the code from coordinates
@@ -102,8 +104,14 @@ function getForecastZoneFromCoords(latitude, longitude) {
  **/
 function getAlerts(latitude, longitude, code) {
   var alerts = requestData("/alerts/active?point=" + latitude + "," + longitude + "&code=" + code).features;
-  //Add thing to this that gets 
   var obj = {
+    /**
+     * Gets the number of alerts of the code specified
+     * @returns {string}
+     **/
+    getAmount: () => {
+      return alerts.length;
+    },
     /**
      * Gets the effective start time of the alert
      * @returns {string}
@@ -314,7 +322,7 @@ console.log("getAlerts(34.22,-90.53,'FFA').getDescription()");
 console.log(getAlerts(34.22, -90.53, "FFA").getDescription());
 */
 
-console.log(getAlerts(33.1,-99.81,"TOR").getMaxHailSize());
+console.log(getAlerts(33.1, -99.81, "TOR").getMaxHailSize());
 
 //For sure add option to switch between OWL and SPC convective forecasts
 
