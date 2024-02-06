@@ -238,11 +238,7 @@ function getAlerts(latitude, longitude, code) {
       };
     },
   };
-  if (alerts.length > 0) {
-    return obj;
-  } else {
-    return "";
-  };
+  return obj;
   //Gonna add more stuff to these so we can get more specific with functions
 };
 
@@ -322,7 +318,7 @@ console.log("getAlerts(34.22,-90.53,'FFA').getDescription()");
 console.log(getAlerts(34.22, -90.53, "FFA").getDescription());
 */
 
-console.log(getAlerts(33.1, -99.81, "TOR").getMaxHailSize());
+console.log(getAlerts(37.49, -119.96, "FFA").getEventName());
 
 //For sure add option to switch between OWL and SPC convective forecasts
 
