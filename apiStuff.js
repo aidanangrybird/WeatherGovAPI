@@ -1,43 +1,82 @@
+const fs = require('node:fs');
+let axios = require("axios");
+var gju = require("geojson-utils");
 let XMLHttpRequest = require("xmlhttprequest").XMLHttpRequest;
+
 const api = "https://api.weather.gov";
+const spc = "https://www.spc.noaa.gov/products";
 const longCoordRegEx = new RegExp("(?:([^\\D]*)(-?)(\\d{0,3})\\.(\\d+))");
 const shortCoordRegEx = new RegExp("\\d{8}", "g");
 var xhr = new XMLHttpRequest();
 xhr.responseType = "json";
 
+function testThing(day, type, date, time) {
+  if (typeof date !== "string") {
+    date = "20230331";
+  };
+  if (typeof time !== "string") {
+    time = "2000";
+  };
+  var thing = "./test/day" + day + "otlk_" + date + "_" + time + "_" + type + ".lyr.geojson";
+  try {
+    const data = JSON.parse(fs.readFileSync(thing, 'utf8')).features;
+    return data;
+  } catch (err) {
+    console.error(err);
+  }
+}
+
+/**
+ * Gets data from api.weather.gov
+ * @param {number|string} url - Latitude of the coordinate pair
+ * @returns {object} Returns data in json form from API
+ **/
 function requestData(url) {
   var apiUrl = api + url;
   xhr.open("GET", apiUrl, false);
   xhr.setRequestHeader("User-Agent", "(Oklahoma Weather Lab, owl@ou.edu)");
   xhr.send();
   return JSON.parse(xhr.responseText);
-};
+}
 
-function checkCoordinates(latitude, longitude) {
+/**
+ * Gets outlook data from spc.noaa.gov
+ * @param {number|string} day - Day of outlook 1-8
+ * @param {string} type - Type of outlook data
+ * @returns {object} This is to get the name and other values for a county
+ **/
+function requestOutlookData(day, type) {
+  if (day < 4) {
+    var apiUrl = spc + "/outlook/day" + day + "otlk_" + type + ".lyr.geojson";
+  }
+  if (day > 3) {
+    var apiUrl = spc + "/exper/day4-8/day" + day + "otlk_" + type + ".lyr.geojson";
+  }
+  xhr.open("GET", apiUrl, false);
+  xhr.setRequestHeader("User-Agent", "(Oklahoma Weather Lab, owl@ou.edu)");
+  xhr.send();
+  return JSON.parse(xhr.responseText).features;
+}
+
+//https://www.spc.noaa.gov/products/outlook/day1otlk_cat.lyr.geojson
+
+function checkCoordinates(longitude, latitude) {
   if (longCoordRegEx.test(longitude) && longCoordRegEx.test(latitude)) {
     return true;
   };
   if (!longCoordRegEx.test(longitude) || !longCoordRegEx.test(latitude)) {
     return false;
   };
-};
+}
 
-//Eventually we can try and make this
-function polygonBuilder(inputText) {
-  var text = inputText;
-  //return text;
-  //text = "1111111 3434344s"
-  var coordinateSets = inputText.matchAll(shortCoordRegEx);
-  return coordinateSets;
-};
-
+module.exports = {
 /**
  * Gets county from coordinates (Might be very useless)
  * @param {number|string} latitude - Latitude of the coordinate pair
  * @param {number|string} longitude - Longitude of the coordinate pair
  * @returns {object} This is to get the name and other values for a county
  **/
-function getCountyFromCoords(latitude, longitude) {
+getCountyFromCoords: (longitude, latitude) => {
   var county = requestData("/zones?type=county&point=" + latitude + "," + longitude).features[0].properties;
   //var county = requestData("/zones?type=county&point=" + latitude + "," + longitude).features[0].properties;
   var obj = {
@@ -71,9 +110,9 @@ function getCountyFromCoords(latitude, longitude) {
     },
   };
   return obj;
-};
+},
 //(Might be very useless)
-function getForecastZoneFromCoords(latitude, longitude) {
+getForecastZoneFromCoords: (longitude, latitude) => {
   var forecastZone = requestData("/zones?type=forecast&point=" + latitude + "," + longitude).features[0].properties;
   var obj = {
     getName: () => {
@@ -90,11 +129,11 @@ function getForecastZoneFromCoords(latitude, longitude) {
     },
   };
   return obj;
-};
+},
 
 //Will need to rework some portion of this so that in case there is more than
 // one alert of the same code that the amount of them can be checked and each one checked.
-//Might change this function back to getAlertsFromCoordsByType in the future
+//Might change this back to getAlertsFromCoordsByType in the future
 /**
  * Gets alerts of the code from coordinates
  * @param {number|string} latitude - Latitude of the coordinate pair
@@ -102,9 +141,16 @@ function getForecastZoneFromCoords(latitude, longitude) {
  * @param {string} code - SAME code of event
  * @returns This is to get certain values from an alert
  **/
-function getAlerts(latitude, longitude, code) {
-  var alerts = requestData("/alerts/active?point=" + latitude + "," + longitude + "&code=" + code).features;
+getAlerts: (longitude, latitude, code) => {
+  var alerts = requestData("/alerts?point=" + latitude + "," + longitude + "&code=" + code).features;
   var obj = {
+    /**
+     * Gets the number of alerts of the code specified
+     * @returns {string}
+     **/
+    getFull: () => {
+      return alerts[0];
+    },
     /**
      * Gets the number of alerts of the code specified
      * @returns {string}
@@ -240,107 +286,229 @@ function getAlerts(latitude, longitude, code) {
   };
   return obj;
   //Gonna add more stuff to these so we can get more specific with functions
-};
+},
 
 /**
  * This gets the SPC outlook text, probablities and coordinates
  * @param {number} day - What day outlook you want. Days 4-8 should be entered as 48
  * @returns {object} Returns both the probability points and outlook narrative
  **/
-function getSPCOutlook(day) {
-  var possibleDays = [1, 2, 3, 48];
-  if (!possibleDays.includes(day) || typeof day !== "number") {
-    console.log(day + " is not a valid value");
-  } else {
-    var obj = {
-      /**
-       * This gets the SPC outlook text
-       * @returns {string} Returns outlook narrative
-       **/
-      getNarrative: () => {
-        if (day == 48) {
-          outlookNarrativeId = JSON.parse(JSON.stringify(requestData("/products?wmoid=ACUS48&type=SWO&limit=1")).slice(86, -2)).id;
-          outlookNarrative = requestData("/products/" + outlookNarrativeId).productText;
-          return outlookNarrative;
+getSPCOutlook: (day) => {
+  var obj = {
+    /**
+     * This gets the SPC outlook text
+     * @returns {string} Returns outlook narrative
+     **/
+    getNarrative: () => {
+      if (day >= 4) {
+        outlookNarrativeId = JSON.parse(JSON.stringify(requestData("/products?wmoid=ACUS48&type=SWO&limit=1")).slice(86, -2)).id;
+        outlookNarrative = requestData("/products/" + outlookNarrativeId).productText;
+        return outlookNarrative;
+      };
+      if (day < 4) {
+        outlookNarrativeId = JSON.parse(JSON.stringify(requestData("/products?wmoid=ACUS0" + day + "type=SWO&limit=1")).slice(86, -2)).id;
+        outlookNarrative = requestData("/products/" + outlookNarrativeId).productText;
+        return outlookNarrative;
+      };
+    },
+    /**
+     * This gets if a point is in a significant tornado risk area
+     * @param {number} latitude - Latitude of point
+     * @param {number} longitude - Longitude of point
+     * @returns {boolean} Returns whether or not inputed point is in a significant tornado risk area
+     **/
+    inSigTornado: (longitude, latitude) => {
+      var coordsIn = false;
+      if (day > 2) {
+        return false;
+      } else {
+        data = testThing(day, "sigtorn");
+        data.forEach(feat => {
+          if (gju.pointInMultiPolygon({"type":"Point","coordinates":[latitude,longitude]}, feat.geometry)) {
+            coordsIn = true;
+          };
+        });
+        return coordsIn;
+      };
+    },
+    /**
+     * This gets if a point is in a sig hail
+     * @param {number} latitude - Latitude of point
+     * @param {number} longitude - Longitude of point
+     * @returns {boolean} Returns whether or not inputed point is in sig hail
+     **/
+    inSigHail: (longitude, latitude) => {
+      var coordsIn = false;
+      if (day > 2) {
+        return false;
+      } else {
+        data = testThing(day, "sighail");
+        data.forEach(feat => {
+          if (gju.pointInMultiPolygon({"type":"Point","coordinates":[latitude,longitude]}, feat.geometry)) {
+            coordsIn = true;
+          };
+        });
+        return coordsIn;
+      };
+    },
+    /**
+     * This gets if a point is in a sig wind
+     * @param {number} latitude - Latitude of point
+     * @param {number} longitude - Longitude of point
+     * @returns {boolean} Returns whether or not inputed point is in sig wind
+     **/
+    inSigWind: (longitude, latitude) => {
+      var coordsIn = false;
+      if (day > 2) {
+        return false;
+      } else {
+        data = testThing(day, "sigwind");
+        data.forEach(feat => {
+          if (gju.pointInMultiPolygon({"type":"Point","coordinates":[latitude,longitude]}, feat.geometry)) {
+            coordsIn = true;
+          };
+        });
+        return coordsIn;
+      };
+    },
+    /**
+     * This gets if a point is in a sig for only Day 3
+     * @param {number} latitude - Latitude of point
+     * @param {number} longitude - Longitude of point
+     * @returns {boolean} Returns whether or not inputed point is in sig for only Day 3
+     **/
+    inSig: (longitude, latitude) => {
+      var coordsIn = false;
+      if (day != 3) {
+        return false;
+      } else {
+        data = testThing(3, "sigprob");
+        data.forEach(feat => {
+          if (gju.pointInMultiPolygon({"type":"Point","coordinates":[latitude,longitude]}, feat.geometry)) {
+            coordsIn = true;
+          };
+        });
+        return coordsIn;
+      };
+    },
+    /**
+     * This gets the maximum tornado risk of the point
+     * @param {number} latitude - Latitude of point
+     * @param {number} longitude - Longitude of point
+     * @returns {number} Returns the maximum tornado risk of the point
+     **/
+    getTornadoRisk: (longitude, latitude) => {
+      var maxRisk = 0;
+      if (day > 2) {
+        return false;
+      } else {
+        data = testThing(day, "torn");
+        data.forEach(feat => {
+          if (gju.pointInMultiPolygon({"type":"Point","coordinates":[latitude,longitude]}, feat.geometry) && maxRisk < feat.properties.DN) {
+            maxRisk = feat.properties.DN;
+          };
+        });
+        return maxRisk;
+      };
+    },
+    /**
+     * This gets the maximum wind risk of the point
+     * @param {number} latitude - Latitude of point
+     * @param {number} longitude - Longitude of point
+     * @returns {number} Returns the maximum wind risk of the point
+     **/
+    getWindRisk: (longitude, latitude) => {
+      var maxRisk = 0;
+      if (day > 2) {
+        return false;
+      } else {
+        data = testThing(day, "wind");
+        data.forEach(feat => {
+          if (gju.pointInMultiPolygon({"type":"Point","coordinates":[latitude,longitude]}, feat.geometry) && maxRisk < feat.properties.DN) {
+            maxRisk = feat.properties.DN;
+          };
+        });
+        return maxRisk;
+      };
+    },
+    /**
+     * This gets the maximum hail risk of the point
+     * @param {number} latitude - Latitude of point
+     * @param {number} longitude - Longitude of point
+     * @returns {number} Returns the maximum hail risk of the point
+     **/
+    getHailRisk: (longitude, latitude) => {
+      var maxRisk = 0;
+      if (day > 2) {
+        return false;
+      } else {
+        data = testThing(day, "hail");
+        data.forEach(feat => {
+          if (gju.pointInMultiPolygon({"type":"Point","coordinates":[latitude,longitude]}, feat.geometry) && maxRisk < feat.properties.DN) {
+            maxRisk = feat.properties.DN;
+          };
+        });
+        return maxRisk;
+      };
+    },
+    /**
+     * This gets the maximum probabilistic risk
+     * @param {number} latitude - Latitude of point
+     * @param {number} longitude - Longitude of point
+     * @returns {string|number} Returns the maximum probabilistic risk of the point
+     **/
+    getProbRisk: (longitude, latitude) => {
+      var maxRisk = 0;
+      if (day != 3) {
+        return 0;
+      };
+      data = testThing(3, "cat");
+      data.forEach(feat => {
+        if (gju.pointInMultiPolygon({"type":"Point","coordinates":[latitude,longitude]}, feat.geometry) && maxRisk < feat.properties.DN) {
+          maxRisk = feat.properties.DN;
         };
-        if (day != 48) {
-          outlookNarrativeId = JSON.parse(JSON.stringify(requestData("/products?wmoid=ACUS0" + day + "type=SWO&limit=1")).slice(86, -2)).id;
-          outlookNarrative = requestData("/products/" + outlookNarrativeId).productText;
-          return outlookNarrative;
+      });
+      return maxRisk;
+    },
+    /**
+     * This gets the risk
+     * @param {number} latitude - Latitude of point
+     * @param {number} longitude - Longitude of point
+     * @returns {string|number} Returns the categorical risk or probability of the point
+     **/
+    getRisk: (longitude, latitude) => {
+      data = requestOutlookData(day, "cat");
+      var maxRisk = 0;
+      data.forEach(feat => {
+        if (gju.pointInMultiPolygon({"type":"Point","coordinates":[latitude,longitude]}, feat.geometry) && maxRisk < feat.properties.DN) {
+          maxRisk = feat.properties.DN;
         };
-      },
-      /**
-       * This gets the SPC outlook probablities and coordinates
-       * @returns {string} Returns the probability points
-       **/
-      getProbabiltyPoints: () => {
-        if (day == 48) {
-          probablityPointsId = JSON.parse(JSON.stringify(requestData("/products?wmoid=WUUS48&type=PTS&limit=1")).slice(86, -2)).id;
-          probablityPoints = requestData("/products/" + probablityPointsId).productText;
-          return probablityPoints;
+      });
+      if (day < 4) {
+        if (maxRisk == 0) {
+          return "NONE";
+        }
+        if (maxRisk == 2) {
+          return "TMST";
         };
-        if (day != 48) {
-          probablityPointsId = JSON.parse(JSON.stringify(requestData("/products?wmoid=WUUS0" + day + "&type=PTS&limit=1")).slice(86, -2)).id;
-          probablityPoints = requestData("/products/" + probablityPointsId).productText;
-          return probablityPoints;
+        if (maxRisk == 3) {
+          return "MRGL";
         };
-      },
-    };
-    return obj;
+        if (maxRisk == 3) {
+          return "SLGT";
+        };
+        if (maxRisk == 3) {
+          return "ENH";
+        };
+        if (maxRisk == 6) {
+          return "MDT";
+        };
+        if (maxRisk == 8) {
+          return "HIGH";
+        };
+      };
+    },
   };
+  return obj;
+}
 };
-
-//Need to add error handling so that in case there are no alerts available for an area, it tells you that there are none
-
-//This was a lot of testing an pain
-//console.log(getCountyFromCoords(39.7392,-104.9849).getID());
-//console.log(getCountyFromCoords(39.7392,-104.9849).getName());
-//console.log(getCountyFromCoords(39.7392,-104.9849).getState());
-//console.log(getCountyFromCoords(39.7392,-104.9849).getWFO());
-
-//console.log(checkCoordinates(39.7392,-104.9849));
-
-//console.log(getSPCOutlook(2).getProbabiltyPoints());
-//console.log(polygonBuilder(getSPCOutlook(2).getProbabiltyPoints()));
-
-//console.log(JSON.stringify(getForecastZoneFromCoords(39.7392,-104.9849).getID()));
-//console.log(JSON.stringify(getForecastZoneFromCoords(38.08,-111.87).getID()));
-/*
-console.log("getAlerts(34.22,-90.53,'FFA').getEffectiveTime()");
-console.log(getAlerts(34.22, -90.53, "FFA").getEffectiveTime());
-console.log("getAlerts(34.22,-90.53,'FFA').getInstructions()");
-console.log(getAlerts(34.22, -90.53, "FFA").getInstructions());
-console.log("getAlerts(34.22,-90.53,'FFA').getHeadline()");
-console.log(getAlerts(34.22, -90.53, "FFA").getHeadline());
-console.log("getAlerts(34.22,-90.53,'FFA').getExpiresTime()");
-console.log(getAlerts(34.22, -90.53, "FFA").getExpiresTime());
-console.log("getAlerts(34.22,-90.53,'FFA').getDescription()");
-console.log(getAlerts(34.22, -90.53, "FFA").getDescription());
-*/
-
-console.log(getAlerts(37.49, -119.96, "FFA").getEventName());
-
-//For sure add option to switch between OWL and SPC convective forecasts
-
-//Create functions that can deconstruct the api data so each part of the zone or alert can be individually addressed
-//This will be better than having to do the pain of what I had to do in coordinateSelectionHelper
-//Also another part that will need to be done is decontructing the product text in a way where
-//we can pull out coordinates and probabilities
-
-
-//API documentation: https://www.weather.gov/documentation/services-web-api
-//Some important NWS API Product Type Code:
-//WWP: Severe Thunderstorm / Tornado Watch Probabilities
-//PWO: Public Severe Weather Outlook
-//HWO: Hazardous Weather Outlook
-//PTS: Probabilistic Outlook Points (More notes on this below)
-//This is the coordinates and probabilities for each of the convective outlooks.
-//The wmoCollectiveID within each of them is how we would get which day that product is for
-//WUUS01 is day 1 outlook, WUUS02 is day 2 outlook, WUUS03 is day 3 outlook, WUUS48 is days 4-8 outlook
-//SWO: Severe Storm Outlook Narrative (AC)
-//This is the text portion of the convective outlooks
-//SEL: Severe Local Storm Watch and Watch Cancellation Msg
-//The ones below will be handled with the active alerts section of the api:
-//TOR: Tornado Warning
-//SVR: Sever Thunderstorm Warning
-//SVS: Special Weather Statement
