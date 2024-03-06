@@ -1,10 +1,10 @@
 const fs = require('node:fs');
 let axios = require("axios");
 var gju = require("geojson-utils");
-var thing = require("./apiStuff");
+var weatherGovAPI = require("./apiStuff");
 
 function coordStuff(longitude, latitude) {
-  console.log(thing.getSPCOutlook(1).getRisk(longitude, latitude));
+  console.log(weatherGovAPI.requestOutlookData(1, "tor"));
 }
 
 //Need to add error handling so that in case there are no alerts available for an area, it tells you that there are none
@@ -36,7 +36,12 @@ console.log(getAlerts(34.22, -90.53, "FFA").getDescription());
 */
 
 //console.log(getAlerts(41.65, -87.46, "SVR").getTornadoDetection());
-console.log(thing.getSPCOutlook(3).getRisk(32.53326798557296, -93.71118137240407));
+//weatherGovAPI.requestOutlookData(1, "tor");
+console.log(weatherGovAPI.getSPCOutlook(3).getRisk(35.1923289706368, -97.4457052131611));
+//console.log("weatherGovAPI.getSPCOutlook(5).getRisk(32.514722, -93.747222)");
+//console.log(weatherGovAPI.getSPCOutlook(5).getRisk(32.514722, -93.747222));
+//console.log("weatherGovAPI.getSPCOutlook(4).getTornadoRisk(32.514722, -93.747222)");
+//console.log(weatherGovAPI.getSPCOutlook(4).getRisk(32.514722, -93.747222));
 
 //For sure add option to switch between OWL and SPC convective forecasts
 
