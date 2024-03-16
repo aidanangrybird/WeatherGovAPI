@@ -3,10 +3,6 @@ let axios = require("axios");
 var gju = require("geojson-utils");
 var weatherGovAPI = require("./apiStuff");
 
-function coordStuff(longitude, latitude) {
-  console.log(weatherGovAPI.requestOutlookData(1, "tor"));
-}
-
 //Need to add error handling so that in case there are no alerts available for an area, it tells you that there are none
 
 //This was a lot of testing an pain
@@ -34,10 +30,11 @@ console.log(getAlerts(34.22, -90.53, "FFA").getExpiresTime());
 console.log("getAlerts(34.22,-90.53,'FFA').getDescription()");
 console.log(getAlerts(34.22, -90.53, "FFA").getDescription());
 */
+weatherGovAPI.attemptDownload(1,"torn");
+//console.log();
 
 //console.log(getAlerts(41.65, -87.46, "SVR").getTornadoDetection());
 //weatherGovAPI.requestOutlookData(1, "tor");
-console.log(weatherGovAPI.getSPCOutlook(3).getRisk(35.1923289706368, -97.4457052131611));
 //console.log("weatherGovAPI.getSPCOutlook(5).getRisk(32.514722, -93.747222)");
 //console.log(weatherGovAPI.getSPCOutlook(5).getRisk(32.514722, -93.747222));
 //console.log("weatherGovAPI.getSPCOutlook(4).getTornadoRisk(32.514722, -93.747222)");
